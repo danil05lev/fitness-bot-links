@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Переход</title>
+<!--
+  Мини-приложение фитнес-бота: при открытии сразу переводит в канал или
+  чат Telegram и закрывается. Ссылка передаётся в адресе страницы:
+  go.html?to=https%3A%2F%2Ft.me%2Fимя_канала
+  Принимаются ТОЛЬКО ссылки вида https://t.me/..., чтобы страницу нельзя
+  было использовать для переадресации на посторонние сайты.
+  Подробности и настройка: README.md, раздел 3.6.
+-->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    font: 15px/1.4 -apple-system, "Segoe UI", Roboto, system-ui, sans-serif;
+    background: var(--tg-theme-bg-color, #ffffff);
+    color: var(--tg-theme-hint-color, #6b7280);
+    text-align: center; padding: 0 16px; box-sizing: border-box;
+  }
+  a { color: var(--tg-theme-link-color, #2f80ed); word-break: break-all; }
+</style>
+</head>
+<body>
+<p id="msg">Открываю…</p>
+<script>
+(function () {
+  var msg = document.getElementById("msg");
+  var tg = window.Telegram && window.Telegram.WebApp;
+  var to = new URLSearchParams(window.location.search).get("to") || "";
+  var allowed = /^https:\/\/t\.me\/[A-Za-z0-9_+\/-]+$/.test(to);
+
+  if (!allowed) {
+    msg.textContent = "Ссылка не настроена.";
+    return;
+  }
+
+  if (tg && tg.initData !== undefined) {
+    tg.ready();
+    tg.openTelegramLink(to);
+    // С версии Bot API 7.0 окно мини-приложения не закрывается само после
+    // openTelegramLink, поэтому закрываем его сами.
+    setTimeout(function () { tg.close(); }, 400);
+  } else {
+    // Страницу открыли не из Telegram, а в обычном браузере.
+    window.location.replace(to);
+  }
+
+  // Запасной вариант, если переход почему-то не сработал.
+  msg.textContent = "Если ничего не открылось: ";
+  var link = document.createElement("a");
+  link.href = to;
+  link.textContent = to;
+  msg.appendChild(link);
+})();
+</script>
+</body>
+</html>
